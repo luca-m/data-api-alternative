@@ -1,3 +1,7 @@
+/**
+ * Provides dynamic model generation for MongoDB collections. 
+ * This allows the application to work with any MongoDB collection without predefined schemas.
+ */
 const mongoose = require('mongoose');
 
 function getModel(database, collection) {

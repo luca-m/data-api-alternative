@@ -1,32 +1,71 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-const apiRoutes = require('./routes/api');
-require("dotenv").config();
-const mongoURI = process.env.MONGO_URI;
+/**
+ * This file initializes the server, connects to MongoDB, and validates API keys for added security.
+ * It also routes requests to the appropriate controller methods.
+ */
 
+const rateLimit = require("express-rate-limit");
+
+const express = require("express");
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+const apiRoutes = require("./routes/api");
+const logger = require("./utiles/Logging");
+require("dotenv").config();
+
+const mongoURI = process.env.MONGO_URI;
+const API_KEY = process.env.API_KEY; // Load API key from .env
+const API_SECRET = process.env.API_SECRET; // Load API secret from .env
+
+// const API_KEY ="sk_test_51J0ZQbSFSZ"
+// const API_SECRET = "test_51J0ZQbSFSZ"
 const app = express();
+
+// Middleware for rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10), // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX, 10), // Limit each IP to 100 requests per windowMs
+  message: { message: process.env.RATE_LIMIT_MESSAGE },
+});
+
+// Apply the rate limiter to all requests
+app.use(limiter);
 
 // Middleware
 app.use(bodyParser.json());
 
+// API Key Authentication Middleware
+app.use((req, res, next) => {
+  logger.info({
+    method: req.method,
+    url: req.originalUrl,
+    body: req.body,
+    headers: req.headers,
+  });
+
+  const apiKey = req.headers["x-api-key"];
+  const apiSecret = req.headers["x-api-secret"];
+
+  if (apiKey === API_KEY && apiSecret === API_SECRET) {
+    next(); // Proceed to the next middleware or route
+  } else {
+    res.status(403).json({ message: "Forbidden: Invalid API Key or Secret" });
+  }
+});
+
 // Connect to MongoDB
 const MONGODB_URI = mongoURI; // Replace with your MongoDB connection string
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+mongoose.connect(MONGODB_URI);
+
+mongoose.connection.on("connected", () => {
+  console.log("Connected to MongoDB");
 });
 
-mongoose.connection.on('connected', () => {
-  console.log('Connected to MongoDB');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('MongoDB connection error:', err);
+mongoose.connection.on("error", (err) => {
+  console.error("MongoDB connection error:", err);
 });
 
 // API Routes
-app.use('/api', apiRoutes);
+app.use("/api", apiRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 3000;

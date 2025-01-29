@@ -1,3 +1,7 @@
+/**
+ * Contains the logic for all CRUD and aggregation operations. 
+ * Each method interacts with the database and handles errors gracefully.
+ */
 const getModel = require('../models/dynamicModel');
 
 class DbController {

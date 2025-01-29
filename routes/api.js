@@ -1,3 +1,6 @@
+/**
+ * Defines the routes for all API endpoints and maps them to the corresponding functions in the dbController class.
+ */
 const express = require('express');
 const dbController = require('../controllers/dbController');
 
