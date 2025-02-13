@@ -2,7 +2,7 @@
  * Contains the logic for all CRUD and aggregation operations. 
  * Each method interacts with the database and handles errors gracefully.
  */
-const getModel = require('../models/dynamicModel');
+const getModel = require("../models/dynamicModel");
 
 class DbController {
   async insertOne(req, res) {
@@ -10,7 +10,7 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.create(document);
-      res.status(200).json({ success: true, result });
+      res.status(201).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -21,7 +21,10 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.insertMany(documents);
-      res.status(200).json({ success: true, result });
+      if (!result || result.length === 0) {
+        return res.status(400).json({ success: false, message: "Insertion failed" });
+      }
+      res.status(201).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -32,6 +35,9 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.findOne(filter, projection);
+      if (!result) {
+        return res.status(404).json({ success: false, message: "No record found" });
+      }
       res.status(200).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
@@ -43,6 +49,9 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.find(filter, projection).sort(sort).limit(limit);
+      if (!result || result.length === 0) {
+        return res.status(404).json({ success: false, message: "No records found" });
+      }
       res.status(200).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
@@ -54,6 +63,9 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.updateOne(filter, update, { upsert });
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ success: false, message: "No records updated" });
+      }
       res.status(200).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
@@ -65,6 +77,9 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.updateMany(filter, update);
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ success: false, message: "No records updated" });
+      }
       res.status(200).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
@@ -76,6 +91,9 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.deleteOne(filter);
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ success: false, message: "No records deleted" });
+      }
       res.status(200).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
@@ -87,6 +105,9 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.deleteMany(filter);
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ success: false, message: "No records deleted" });
+      }
       res.status(200).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
@@ -98,6 +119,9 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.aggregate(pipeline);
+      if (!result || result.length === 0) {
+        return res.status(404).json({ success: false, message: "No aggregation results found" });
+      }
       res.status(200).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
