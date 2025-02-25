@@ -13,8 +13,6 @@ require("dotenv").config();
 const API_KEY = process.env.API_KEY; // Load API key from .env
 const API_SECRET = process.env.API_SECRET; // Load API secret from .env
 
-// const API_KEY ="sk_test_51J0ZQbSFSZ"
-// const API_SECRET = "test_51J0ZQbSFSZ"
 const app = express();
 
 // Middleware for rate limiting

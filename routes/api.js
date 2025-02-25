@@ -1,3 +1,4 @@
+
 /**
  * Defines the routes for all API endpoints and maps them to the corresponding functions in the dbController class.
  */
