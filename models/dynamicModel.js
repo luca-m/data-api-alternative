@@ -1,55 +1,46 @@
-// /**
-//  * Provides dynamic model generation for MongoDB collections. 
-//  * This allows the application to work with any MongoDB collection without predefined schemas.
-//  */
+// Import the mongoose library for MongoDB object modeling
 const mongoose = require("mongoose");
-require("dotenv").config();
 
-const connections = {}; // Cache for database connections
+// Import the function to get a database connection
+const getDatabaseConnection = require("../connection/databaseManager");
+
+// Initialize an empty object to cache models
+// This helps in reusing models and avoiding redundant model creation
 const modelsCache = {}; // Cache for models (database.collection -> Model)
 
-function getModel(database, collection) {
-  const baseURI = process.env.MONGO_URI; // Get base MongoDB connection string
-  const options = process.env.MONGO_OPTIONS || ""; // Additional MongoDB options
-
-  if (!baseURI) {
-    throw new Error("MONGO_URI is not defined in .env file!");
-  }
-
-  // Create a cache key for model lookup (database.collection)
+/**
+ * Creates and retrieves a dynamic model for a given database and collection.
+ * This function ensures that the same model is reused if it has already been created.
+ * 
+ * @param {string} database - The name of the database.
+ * @param {string} collection - The name of the collection.
+ * @returns {mongoose.Model} - The Mongoose model instance for the specified collection.
+ */
+const getModel = (database, collection) => {
+  // Create a unique key for the model based on the database and collection names
   const modelKey = `${database}.${collection}`;
 
-  // If the model already exists in cache, return it
+  // Check if the model already exists in the cache
+  // If it does, return the cached model
   if (modelsCache[modelKey]) {
     return modelsCache[modelKey];
   }
 
-  // If a connection to this database does not exist, create it
-  if (!connections[database]) {
-    connections[database] = mongoose.createConnection(
-      `${baseURI}/${database}${options}`,
-    );
+  // Get the database connection for the specified database
+  const dbConnection = getDatabaseConnection(database);
 
-    // Handle connection errors
-    connections[database].on("error", (err) => {
-      console.error(`MongoDB connection error for ${database}:`, err);
-    });
-
-    connections[database].once("open", () => {
-      console.log(`Connected to MongoDB database: ${database}`);
-    });
-  }
-
-  const dbConnection = connections[database];
-
-  // Define a flexible schema (no predefined structure)
+  // Define a flexible schema with no predefined structure
+  // This allows the schema to accept any fields
   const schema = new mongoose.Schema({}, { strict: false });
 
-  // Create and cache the model
+  // Create the model using the database connection, collection name, and schema
+  // Cache the model for future use
   const model = dbConnection.model(collection, schema, collection);
   modelsCache[modelKey] = model;
 
+  // Return the newly created model
   return model;
-}
+};
 
+// Export the getModel function as a module
 module.exports = getModel;
