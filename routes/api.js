@@ -7,6 +7,7 @@ const dbController = require('../controllers/dbController');
 const router = express.Router();
 
 router.post('/insertOne', dbController.insertOne);
+router.post('/insertMany', dbController.insertMany);
 router.post('/findOne', dbController.findOne);
 router.post('/find', dbController.find);
 router.post('/updateOne', dbController.updateOne);

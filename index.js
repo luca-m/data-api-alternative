@@ -6,13 +6,10 @@
 const rateLimit = require("express-rate-limit");
 
 const express = require("express");
-const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
 const apiRoutes = require("./routes/api");
-const logger = require("./utiles/Logging");
+const logger = require("./utils/Logging");
 require("dotenv").config();
 
-const mongoURI = process.env.MONGO_URI;
 const API_KEY = process.env.API_KEY; // Load API key from .env
 const API_SECRET = process.env.API_SECRET; // Load API secret from .env
 
@@ -31,7 +28,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Middleware
-app.use(bodyParser.json());
+app.use(express.json());
 
 // API Key Authentication Middleware
 app.use((req, res, next) => {
