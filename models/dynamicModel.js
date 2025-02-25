@@ -1,6 +1,5 @@
 // Import the mongoose library for MongoDB object modeling
 const mongoose = require("mongoose");
-
 // Import the function to get a database connection
 const getDatabaseConnection = require("../connection/databaseManager");
 
