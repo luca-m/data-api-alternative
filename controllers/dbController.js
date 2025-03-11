@@ -10,6 +10,9 @@ class DbController {
     try {
       const Model = getModel(database, collection);
       const result = await Model.insertOne(document);
+      if (!result) {
+        return res.status(400).json({ success: false, message: "Insertion failed" });
+      }
       res.status(201).json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
