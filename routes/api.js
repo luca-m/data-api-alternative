@@ -13,6 +13,7 @@ router.post('/findOne', dbController.findOne);
 router.post('/find', dbController.find);
 router.post('/updateOne', dbController.updateOne);
 router.post('/deleteOne', dbController.deleteOne);
+router.post('/deleteMany', dbController.deleteMany);
 router.post('/aggregate', dbController.aggregate);
 
 module.exports = router;
