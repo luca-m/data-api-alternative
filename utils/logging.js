@@ -1,4 +1,21 @@
 const winston = require('winston');
+const fs = require('fs');
+const path = require('path');
+
+const transports = [
+  new winston.transports.Console()
+];
+
+if (process.env.NODE_ENV !== 'production') {
+  const logDir = 'logs';
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  transports.push(
+    new winston.transports.File({ filename: path.join(logDir, 'api.log') })
+  );
+}
 
 /**
  * Logger instance configured with Winston.
@@ -14,10 +31,7 @@ const winston = require('winston');
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: 'logs/api.log' })
-  ]
+  transports
 });
 
 module.exports = logger;
