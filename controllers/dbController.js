@@ -4,11 +4,30 @@
  */
 const getModel = require("../models/dynamicModel");
 
+function convertEJSONDates(obj) {
+    if (obj && typeof obj === 'object') {
+      for (const [key, value] of Object.entries(obj)) {
+        if (
+          value &&
+          typeof value === 'object' &&
+          Object.prototype.hasOwnProperty.call(value, '$date') &&
+          typeof value.$date === 'string'
+        ) {
+          obj[key] = new Date(value.$date);
+        } else if (typeof value === 'object') {
+          convertEJSONDates(value);
+        }
+      }
+    }
+  }
+
+
 class DbController {
   async insertOne(req, res) {
     const { database, collection, document } = req.body;
     try {
       const Model = getModel(database, collection);
+      convertEJSONDates(document);
       const result = await Model.insertOne(document);
       if (!result) {
         return res.status(400).json({ success: false, message: "Insertion failed" });
@@ -23,6 +42,7 @@ class DbController {
     const { database, collection, documents } = req.body;
     try {
       const Model = getModel(database, collection);
+      documents.forEach(doc => convertEJSONDates(doc));
       const result = await Model.insertMany(documents);
       if (!result || result.length === 0) {
         return res.status(400).json({ success: false, message: "Insertion failed" });
@@ -65,6 +85,8 @@ class DbController {
     const { database, collection, filter, update, upsert } = req.body;
     try {
       const Model = getModel(database, collection);
+      convertEJSONDates(filter);
+      convertEJSONDates(update);
       const result = await Model.updateOne(filter, update, { upsert });
       if (result.matchedCount === 0) {
         return res.status(404).json({ success: false, message: "No records updated" });
@@ -79,6 +101,8 @@ class DbController {
     const { database, collection, filter, update } = req.body;
     try {
       const Model = getModel(database, collection);
+      convertEJSONDates(filter);
+      convertEJSONDates(update);
       const result = await Model.updateMany(filter, update);
       if (result.matchedCount === 0) {
         return res.status(404).json({ success: false, message: "No records updated" });
@@ -93,6 +117,7 @@ class DbController {
     const { database, collection, filter } = req.body;
     try {
       const Model = getModel(database, collection);
+      convertEJSONDates(filter);
       const result = await Model.deleteOne(filter);
       if (result.deletedCount === 0) {
         return res.status(404).json({ success: false, message: "No records deleted" });
@@ -107,6 +132,7 @@ class DbController {
     const { database, collection, filter } = req.body;
     try {
       const Model = getModel(database, collection);
+      convertEJSONDates(filter);
       const result = await Model.deleteMany(filter);
       if (result.deletedCount === 0) {
         return res.status(404).json({ success: false, message: "No records deleted" });
