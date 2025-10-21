@@ -68,10 +68,24 @@ class DbController {
   }
 
   async find(req, res) {
-    const { database, collection, filter, projection, sort, limit } = req.body;
+    const { database, collection, filter, projection, sort, limit, skip } = req.body;
     try {
       const Model = getModel(database, collection);
-      const result = await Model.find(filter, projection).sort(sort).limit(limit);
+      let query = Model.find(filter, projection);
+
+      if (sort) {
+        query = query.sort(sort);
+      }
+
+      if (skip !== undefined) {
+        query = query.skip(skip);
+      }
+
+      if (limit !== undefined) {
+        query = query.limit(limit);
+      }
+
+      const result = await query;
       if (!result || result.length === 0) {
         return res.status(404).json({ success: false, message: "No records found" });
       }
